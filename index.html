@@ -40,7 +40,7 @@ html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-stopped, html.lock, html.lock body { overflow: hidden; }
 body {
   margin: 0; background: var(--bg); color: var(--fg); font-family: var(--f-sans);
-  font-size: 16px; line-height: 1.6; overflow-x: clip; -webkit-font-smoothing: antialiased;
+  font-size: 16px; line-height: 1.6; overflow-x: hidden; overflow-x: clip; -webkit-font-smoothing: antialiased;
 }
 img { max-width: 100%; display: block; }
 a { color: inherit; }
@@ -1015,6 +1015,43 @@ html.reduce *, html.reduce *::before, html.reduce *::after { scroll-behavior: au
   </aside>
 </div>
 
+<script>
+/* Diagnostics: open the page with #debug to see what runs on this device. Errors are always collected. */
+(function () {
+  var errs = window.__errs = [];
+  window.addEventListener("error", function (e) { errs.push((e.message || "error") + " @" + (e.filename || "").split("/").pop() + ":" + (e.lineno || "")); }, true);
+  window.addEventListener("unhandledrejection", function (e) { errs.push("promise: " + (e.reason && e.reason.message || e.reason)); });
+  if (location.hash !== "#debug") return;
+  function show() {
+    var fps = 0, t0 = performance.now();
+    (function f() { fps++; if (performance.now() - t0 < 1000) requestAnimationFrame(f); })();
+    setTimeout(render, 1100);
+    function render() {
+      var cv = document.getElementById("heroCanvas");
+      var rows = [
+        ["UA", navigator.userAgent],
+        ["Viewport", innerWidth + "x" + innerHeight + " dpr " + devicePixelRatio],
+        ["Reduce motion (OS)", String(matchMedia("(prefers-reduced-motion: reduce)").matches)],
+        ["Pointer coarse", String(matchMedia("(pointer: coarse)").matches)],
+        ["In iframe", String(window.self !== window.top)],
+        ["GSAP / ScrollTrigger / Lenis", [!!window.gsap, !!window.ScrollTrigger, !!window.Lenis].join(" / ")],
+        ["ScrollTriggers", window.ScrollTrigger ? String(ScrollTrigger.getAll().length) : "-"],
+        ["html class", document.documentElement.className],
+        ["Hero canvas", cv ? cv.width + "x" + cv.height : "none"],
+        ["Frames/s", String(fps)],
+        ["Scroll", scrollY + " / " + document.documentElement.scrollHeight],
+        ["Errors", errs.length ? errs.join(" | ") : "none"]
+      ];
+      var box = document.createElement("div");
+      box.setAttribute("style", "position:fixed;left:8px;right:8px;bottom:8px;z-index:99999;background:#fff;color:#062A31;font:12px/1.4 -apple-system,Arial,sans-serif;padding:10px 12px;max-height:60vh;overflow:auto;border:2px solid #87B624");
+      box.innerHTML = "<b>Diagnose</b> (Screenshot an Claude)<br>" + rows.map(function (r) { return "<b>" + r[0] + ":</b> " + String(r[1]).replace(/</g, "&lt;"); }).join("<br>");
+      document.body.appendChild(box);
+    }
+  }
+  window.addEventListener("load", function () { setTimeout(show, 3500); });
+})();
+
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>

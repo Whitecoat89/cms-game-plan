@@ -515,7 +515,7 @@ html.anim .rv { opacity: 0; transform: translateY(28px); }
 html.anim .rv.in { opacity: 1; transform: none; transition: opacity .9s var(--ease), transform .9s var(--ease); }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .scroll-hint i::after, .skill .img img, .mate img { animation: none !important; transition: none !important; }
   html.anim .rv { opacity: 1; transform: none; }
 }
 
@@ -848,7 +848,6 @@ if (window.gsap && window.ScrollTrigger) gsap.registerPlugin(ScrollTrigger);
   /* ================= boot ================= */
   function boot(done) {
     var el = $("#boot"), bar = $("#boot .bar i"), pct = $("#bootPct");
-    if (reduce) { el.remove(); done(); return; }
     var p = 0, finished = false;
     var iv = setInterval(function () {
       p = Math.min(100, p + 4 + Math.random() * 9);
@@ -992,8 +991,8 @@ if (window.gsap && window.ScrollTrigger) gsap.registerPlugin(ScrollTrigger);
         ctx.fillRect(p.x, p.y, p.s, p.s);
       }
     }
-    if (reduce) {
-      // draw the settled supergraphic once
+    if (false) {
+      // (intro always plays; reduced motion only drops scroll effects)
       ctx.clearRect(0, 0, W, H);
       parts.forEach(function (p, i) { var t = target(0, i); ctx.fillStyle = p.g ? "#87B624" : "rgba(255,255,255,.86)"; ctx.fillRect(t[0], t[1], p.s, p.s); });
     } else requestAnimationFrame(frame);
@@ -1017,7 +1016,7 @@ if (window.gsap && window.ScrollTrigger) gsap.registerPlugin(ScrollTrigger);
       gsap.to(".hero-title", { yPercent: -18, opacity: .15, ease: "none", scrollTrigger: { trigger: "#start", start: "top top", end: "+=" + (steps.length * 70) + "%", scrub: true } });
     } else {
       // touch devices and embedded viewers: the intro plays by itself, a tap skips ahead
-      if (!reduce) {
+      {
         var go = function (n) {
           setStep(n);
           if (hasGsap) gsap.to(hero, { prog: n / (steps.length - 1), duration: n === 0 ? 2.2 : 1.5, ease: "power2.inOut", overwrite: true });
@@ -1115,7 +1114,7 @@ if (window.gsap && window.ScrollTrigger) gsap.registerPlugin(ScrollTrigger);
         var a = pos[p.e[0]], b = pos[p.e[1]];
         p.el.setAttribute("x", a[0] + (b[0] - a[0]) * p.t - 3); p.el.setAttribute("y", a[1] + (b[1] - a[1]) * p.t - 3);
       });
-      if (!reduce) requestAnimationFrame(tick);
+      requestAnimationFrame(tick);
     }
     tick();
     function select(id) {
@@ -1166,8 +1165,8 @@ if (window.gsap && window.ScrollTrigger) gsap.registerPlugin(ScrollTrigger);
     var words = el.textContent.trim().split(/\s+/), hl = D.bossHighlight;
     el.innerHTML = words.map(function (w) { return '<span class="w' + (hl.indexOf(w.replace(/[.,:]/g, "")) > -1 ? " hl" : "") + '">' + esc(w) + "</span>"; }).join(" ");
     var ws = $$(".w", el);
-    if (!hasGsap || reduce) { ws.forEach(function (w) { w.classList.add("lit"); }); return; }
-    if (touch) {
+    if (!hasGsap) { ws.forEach(function (w) { w.classList.add("lit"); }); return; }
+    if (touch || reduce) {
       var io = new IntersectionObserver(function (en) {
         if (!en[0].isIntersecting) return; io.disconnect();
         ws.forEach(function (w, i) { setTimeout(function () { w.classList.add("lit"); }, 120 + i * 110); });
@@ -1353,7 +1352,7 @@ if (window.gsap && window.ScrollTrigger) gsap.registerPlugin(ScrollTrigger);
   function initContinue() {
     var el = $("#count"), n = 9, iv = null;
     var io = new IntersectionObserver(function (en) {
-      if (en[0].isIntersecting && !iv && !reduce) {
+      if (en[0].isIntersecting && !iv) {
         iv = setInterval(function () { n = n <= 0 ? 9 : n - 1; el.textContent = n; if (n === 0) blip([300, 200]); }, 1000);
       } else if (!en[0].isIntersecting && iv) { clearInterval(iv); iv = null; }
     });
@@ -1393,7 +1392,7 @@ if (window.gsap && window.ScrollTrigger) gsap.registerPlugin(ScrollTrigger);
   if (hasGsap) { ScrollTrigger.sort(); ScrollTrigger.refresh(); addEventListener("load", function () { ScrollTrigger.refresh(); }); }
   boot(function () {
     unlock("start");
-    if (hasGsap && !reduce) {
+    if (hasGsap) {
       gsap.from(".hero-title .split-line > span", { yPercent: 110, duration: 1.1, ease: "power4.out", stagger: .08 });
       gsap.from(".hero-foot", { opacity: 0, y: 20, duration: .9, delay: .4, ease: "power3.out" });
     }
